@@ -1,2 +1,11 @@
+type Stock = 
+ record {
+   name: text;
+   price: float64;
+   symbol: text;
+ };
 service : {
+  getStocks: () -> (vec Stock) query;
+  trade: (text, int, bool) -> (text);
+  updateStockPrice: (text, float64) -> ();
 }

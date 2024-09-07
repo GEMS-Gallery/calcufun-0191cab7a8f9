@@ -3,129 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RealEstate v0 - The Future of Property Listings</title>
+    <title>Minimalist Trading App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
     <style>
         body {
-            font-family: 'Courier New', monospace;
-            line-height: 1.6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f0f0f0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #333333;
         }
         .container {
-            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
             margin: 0 auto;
-            background-color: #fff;
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .property {
-            border: 1px solid #ddd;
-            padding: 10px;
+        .chart-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             margin-bottom: 20px;
-            background-color: #f9f9f9;
         }
-        .property img {
-            max-width: 100%;
-            height: auto;
+        .sidebar {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        .property h2 {
-            margin-top: 0;
+        h1, h2 {
+            color: #000000;
+            font-weight: 500;
         }
-        .price {
-            font-weight: bold;
-            color: #4CAF50;
+        .stock-list {
+            list-style-type: none;
+            padding: 0;
         }
-        .cta {
-            display: inline-block;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 10px;
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
         }
-        #addListing {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: #333;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        .buy-sell {
             margin-top: 20px;
+        }
+        input, select, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #333333;
+        }
+        #stockChart {
+            max-height: 300px;
+        }
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            .chart-container {
+                width: 65%;
+                margin-bottom: 0;
+            }
+            .sidebar {
+                width: 30%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏠 RealEstate v0 🏠</h1>
-        <p>Welcome to the future of property listings! We're in beta, so expect some bugs (and maybe a few real ones in the properties).</p>
-        
-        <div id="listings"></div>
-        
-        <button id="addListing">Add New Listing (it's v0, so it's just pretend)</button>
+        <div class="chart-container">
+            <h1>Market Overview</h1>
+            <canvas id="stockChart"></canvas>
+        </div>
+        <div class="sidebar">
+            <h2>Watchlist</h2>
+            <ul class="stock-list" id="stockList"></ul>
+            <div class="buy-sell">
+                <h2>Trade</h2>
+                <select id="stockSelect"></select>
+                <input type="number" id="quantity" placeholder="Quantity">
+                <button onclick="buy()">Buy</button>
+                <button onclick="sell()" style="background-color: #ffffff; color: #000000; border: 1px solid #000000;">Sell</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const listings = [
-            {
-                title: "Cozy Cardboard Box",
-                price: "$1,000,000",
-                description: "Prime location under a bridge. Great views of passing cars!",
-                image: "/api/placeholder/400/300"
-            },
-            {
-                title: "Haunted Victorian Mansion",
-                price: "$666,666",
-                description: "Perfect for ghost enthusiasts or exorcists-in-training.",
-                image: "/api/placeholder/400/300"
-            },
-            {
-                title: "Underground Bunker",
-                price: "$5,000,000",
-                description: "Apocalypse-ready! Comes with a 10-year supply of canned beans.",
-                image: "/api/placeholder/400/300"
-            }
-        ];
+        let stocks = [];
 
-        function displayListings() {
-            const listingsContainer = document.getElementById('listings');
-            listingsContainer.innerHTML = '';
+        async function fetchStocks() {
+            try {
+                const response = await fetch('/api/stocks');
+                stocks = await response.json();
+                updateStockList();
+            } catch (error) {
+                console.error('Error fetching stocks:', error);
+            }
+        }
+
+        function updateStockList() {
+            const stockList = document.getElementById('stockList');
+            const stockSelect = document.getElementById('stockSelect');
+            stockList.innerHTML = '';
+            stockSelect.innerHTML = '';
             
-            listings.forEach(listing => {
-                const propertyDiv = document.createElement('div');
-                propertyDiv.className = 'property';
-                propertyDiv.innerHTML = `
-                    <img src="${listing.image}" alt="${listing.title}">
-                    <h2>${listing.title}</h2>
-                    <p class="price">${listing.price}</p>
-                    <p>${listing.description}</p>
-                    <a href="#" class="cta">Schedule Viewing</a>
+            stocks.forEach(stock => {
+                const li = document.createElement('li');
+                li.className = 'stock-item';
+                li.innerHTML = `
+                    <span>${stock.symbol}</span>
+                    <span>$${stock.price.toFixed(2)}</span>
                 `;
-                listingsContainer.appendChild(propertyDiv);
+                stockList.appendChild(li);
+
+                const option = document.createElement('option');
+                option.value = stock.symbol;
+                option.textContent = stock.symbol;
+                stockSelect.appendChild(option);
             });
         }
 
-        document.getElementById('addListing').addEventListener('click', () => {
-            const newListing = {
-                title: "New Futuristic Property",
-                price: "$" + (Math.floor(Math.random() * 10000000) + 1000000),
-                description: "This property doesn't exist yet, but it will in the future!",
-                image: "/api/placeholder/400/300"
-            };
-            listings.push(newListing);
-            displayListings();
-            alert("New listing added! (Remember, it's v0, so it's just pretend)");
-        });
+        function initChart() {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Market Index',
+                        data: [120, 130, 125, 135, 140, 150],
+                        borderColor: '#000000',
+                        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: '#f0f0f0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
 
-        displayListings();
+        async function buy() {
+            await trade(true);
+        }
+
+        async function sell() {
+            await trade(false);
+        }
+
+        async function trade(isBuy) {
+            const symbol = document.getElementById('stockSelect').value;
+            const quantity = document.getElementById('quantity').value;
+            try {
+                const response = await fetch('/api/trade', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ symbol, quantity: parseInt(quantity), isBuy }),
+                });
+                const result = await response.text();
+                alert(result);
+            } catch (error) {
+                console.error('Error trading:', error);
+                alert('Trade failed. Please try again.');
+            }
+        }
+
+        fetchStocks();
+        initChart();
     </script>
 </body>
 </html>
