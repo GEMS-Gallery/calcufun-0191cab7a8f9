@@ -1,12 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>IC Calculator</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RealEstate v0 - The Future of Property Listings</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .property {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .property img {
+            max-width: 100%;
+            height: auto;
+        }
+        .property h2 {
+            margin-top: 0;
+        }
+        .price {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .cta {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        #addListing {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 RealEstate v0 🏠</h1>
+        <p>Welcome to the future of property listings! We're in beta, so expect some bugs (and maybe a few real ones in the properties).</p>
+        
+        <div id="listings"></div>
+        
+        <button id="addListing">Add New Listing (it's v0, so it's just pretend)</button>
+    </div>
+
+    <script>
+        const listings = [
+            {
+                title: "Cozy Cardboard Box",
+                price: "$1,000,000",
+                description: "Prime location under a bridge. Great views of passing cars!",
+                image: "/api/placeholder/400/300"
+            },
+            {
+                title: "Haunted Victorian Mansion",
+                price: "$666,666",
+                description: "Perfect for ghost enthusiasts or exorcists-in-training.",
+                image: "/api/placeholder/400/300"
+            },
+            {
+                title: "Underground Bunker",
+                price: "$5,000,000",
+                description: "Apocalypse-ready! Comes with a 10-year supply of canned beans.",
+                image: "/api/placeholder/400/300"
+            }
+        ];
+
+        function displayListings() {
+            const listingsContainer = document.getElementById('listings');
+            listingsContainer.innerHTML = '';
+            
+            listings.forEach(listing => {
+                const propertyDiv = document.createElement('div');
+                propertyDiv.className = 'property';
+                propertyDiv.innerHTML = `
+                    <img src="${listing.image}" alt="${listing.title}">
+                    <h2>${listing.title}</h2>
+                    <p class="price">${listing.price}</p>
+                    <p>${listing.description}</p>
+                    <a href="#" class="cta">Schedule Viewing</a>
+                `;
+                listingsContainer.appendChild(propertyDiv);
+            });
+        }
+
+        document.getElementById('addListing').addEventListener('click', () => {
+            const newListing = {
+                title: "New Futuristic Property",
+                price: "$" + (Math.floor(Math.random() * 10000000) + 1000000),
+                description: "This property doesn't exist yet, but it will in the future!",
+                image: "/api/placeholder/400/300"
+            };
+            listings.push(newListing);
+            displayListings();
+            alert("New listing added! (Remember, it's v0, so it's just pretend)");
+        });
+
+        displayListings();
+    </script>
+</body>
 </html>
